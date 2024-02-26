@@ -15,7 +15,7 @@ class MainWindow(Qw.QMainWindow):
 
     super().__init__() 
     self.setWindowTitle('MainWindow') 
-    self.setGeometry(100, 50, 640, 130) 
+    self.setGeometry(100, 80, 640, 130) 
 
     # メインレイアウトの設定
     central_widget = Qw.QWidget(self)
@@ -43,14 +43,11 @@ class MainWindow(Qw.QMainWindow):
     self.cmb_mode.setEditable(False)
     for p in mode_list:
       self.cmb_mode.addItem(p)
-    Idx=self.cmb_mode.currentIndexChanged.connect(self.mode_changed)
-    Flag1=False
+    self.cmb_mode.currentIndexChanged.connect(self.mode_changed)
     dir_path = "setweb"
-    print(11111)
 
     # ファイルコンボボックスの見出し
     self.lb_file = Qw.QLabel(self)
-    #self.lb_file.setGeometry(15,10,300,25)
     self.lb_file.setMinimumSize(50,20)
     self.lb_file.setText('開きたいウェブが載った.txt')
     self.lb_file.setSizePolicy(sp_exp,sp_exp)
@@ -68,7 +65,7 @@ class MainWindow(Qw.QMainWindow):
     file_list.insert(0,'')
     for p in file_list:
       self.cmb_file.addItem(p)
-    self.cmb_file.currentIndexChanged.connect(self.file_changed)
+    flag=self.cmb_file.currentIndexChanged.connect(self.file_changed)
 
     # 実行の作成
     self.btn_run = Qw.QPushButton('実行',self)
@@ -76,6 +73,13 @@ class MainWindow(Qw.QMainWindow):
     self.btn_run.setMaximumSize(100,20)
     self.btn_run.setSizePolicy(sp_exp,sp_exp)
     button_layout.addWidget(self.btn_run)
+
+    # ファイルエラーコンボボックスの見出し
+    self.lb_error = Qw.QLabel(self)
+    self.lb_error.setMinimumSize(50,20)
+    self.lb_file.setSizePolicy(sp_exp,sp_exp)
+    button_layout.addWidget(self.lb_error)
+
     self.btn_run.clicked.connect(self.btn_run_clicked)
 
   def mode_changed(self):
@@ -83,6 +87,8 @@ class MainWindow(Qw.QMainWindow):
     print(f'「{mode_list[idx]}」が選択されました。')
     if idx==False:
         self.lb_file.setText('開きたいウェブが載った.txt')
+        if not os.path.isdir("setweb"):
+          os.makedirs('setweb')
         files = os.listdir("setweb")
         file_list=files
         file_list.insert(0,'')
@@ -92,6 +98,8 @@ class MainWindow(Qw.QMainWindow):
           self.cmb_file.addItem(p)
     elif idx==True:
         self.lb_file.setText('開きたいアプリのフルパスが載った.txt')
+        if not os.path.isdir("setapp"):
+          os.makedirs('setapp')
         files = os.listdir("setapp")
         file_list=files
         file_list.insert(0,'')
@@ -99,14 +107,15 @@ class MainWindow(Qw.QMainWindow):
           self.cmb_file.removeItem(0)
         for p in file_list:
           self.cmb_file.addItem(p)
-    return idx
     
   def file_changed(self):
     idx = self.cmb_file.currentIndex()
     if idx == 0 :
       print(f'テキストファイルが未選択になりました。')
+      return 404
     else :
       print(f'テキストファイルが選択されました。')
+      return 1
 
   def btn_run_clicked(self):
     Idx_mode= self.cmb_mode.currentIndex()
@@ -118,6 +127,7 @@ class MainWindow(Qw.QMainWindow):
     files = os.listdir(path)
     file_list=files
     file_list.insert(0,'')
+    self.lb_error.setText('')
     if idx != 0 and Idx_mode == 1:
       F=file_list[idx]
       with open(f"{path}/{F}") as f:
@@ -132,3 +142,5 @@ class MainWindow(Qw.QMainWindow):
         print(l_strip)
       for i in range(len(l_strip)):
         webbrowser.open(l_strip[i])
+    else :
+      self.lb_error.setText('実行できる.txtファイルがありません')
